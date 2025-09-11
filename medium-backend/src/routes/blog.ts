@@ -3,6 +3,7 @@ import { decode, sign, verify } from 'hono/jwt';
 import { PrismaClient } from "../../prisma/generated/client/edge.js";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { createBlogInput , updateBlogInput} from "@ishonpanda/medium-common";
+import { title } from "process";
 
 
 
@@ -117,7 +118,18 @@ blogRouter.get('/bulk',async (c) => {
         const prisma = new PrismaClient({ datasourceUrl: c.env.DB_URL }).$extends(withAccelerate());
 
 
-        const blogs = await prisma.post.findMany();
+        const blogs = await prisma.post.findMany({
+            select:{
+                content: true,
+                title: true,
+                id:true,
+                author:{
+                    select:{
+                        name: true
+                    }
+                }
+            }
+        });
 
         return c.json({
             blogs,
@@ -136,15 +148,23 @@ blogRouter.get('/:id',async (c) => {
     try{
         const prisma = new PrismaClient({ datasourceUrl: c.env.DB_URL }).$extends(withAccelerate());
 
-    const blog = await prisma.post.findMany({
-        where:{
-            id:Number(id),
-        },
-    });
-
-    return c.json({
-        blog
-    });
+        const blog = await prisma.post.findUnique({
+            where: {
+              id: Number(id),
+            },
+            select: {
+              title: true,
+              content: true,
+              author: {
+                select: {
+                  name: true,
+                }
+              }
+            }
+          });
+          
+          return c.json({ blog });
+          
     }catch(e)
     {
         return c.text("ERROR in finding Body of POST");

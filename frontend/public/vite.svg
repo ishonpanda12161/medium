@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">PandaWrite Logo</title>
+  <desc id="logoDesc">Stylized minimal mark: a rounded square with a pen-nib forming a modern M shape.</desc>
+
+  <!-- Background rounded square -->
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="s" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0b1320" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#s)">
+    <rect x="12" y="12" width="176" height="176" rx="28" fill="url(#g1)"/>
+  </g>
+
+  <!-- Pen-nib / M shape (white) -->
+  <g transform="translate(40,36)" fill="#ffffff" stroke="rgba(255,255,255,0.06)" stroke-width="0.5">
+    <!-- left stroke -->
+    <path d="M20 8c0-3.3 2.7-6 6-6h8c3.3 0 6 2.7 6 6v72l-14-12-14 12V8z" opacity="0.98"/>
+    <!-- inner negative cut (creates nib point and M negative) -->
+    <path d="M40 68l12-10V8c0-1.1-.9-2-2-2h-8c-1.1 0-2 .9-2 2v50l-10 8 10 8z" fill="url(#g1)" opacity="0.06"/>
+    <!-- nib hole -->
+    <circle cx="40" cy="44" r="5" fill="rgba(0,0,0,0.08)"/>
+  </g>
+
+  <!-- Accent stroke to emphasize shape -->
+  <path d="M60 40c6 0 18 16 28 28" fill="none" stroke="rgba(255,255,255,0.12)" stroke-linecap="round" stroke-width="4"/>
+
+</svg>
