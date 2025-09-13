@@ -13,27 +13,38 @@ import { BACKEND_URL } from "../config";
         password:"",
         name:"",
     });
+    const [submitting,setSubmitting] = useState(false);
+    const [error,setError] = useState<string | null>(null);
 
-    async function sendRequest()
-    {
+    async function sendRequest(){
+        setSubmitting(true);
+        setError(null);
         try{
-            const response = await axios.post(`${BACKEND_URL}/api/v1/user/${type==="signup"?"signup":"signin"}`,postInputs);
-             const jwt = response.data.token;
-             localStorage.setItem("token",jwt);
-             navigate("/blogs");
-        }catch(e)
-        {
-            //alert
-            alert("Error While Signing up");
+            const payload = type === 'signup' ? postInputs : { email: postInputs.email, password: postInputs.password };
+            const response = await axios.post(`${BACKEND_URL}/api/v1/user/${type}`, payload, { timeout: 15000 });
+            const jwt: string = response.data.token;
+            if(!jwt){
+                throw new Error('No token returned');
+            }
+            const normalized = jwt.startsWith('Bearer ') ? jwt : `Bearer ${jwt}`;
+            localStorage.setItem("token", normalized);
+            if(postInputs.name){
+                localStorage.setItem('user', JSON.stringify({ name: postInputs.name, email: postInputs.email }));
+            }
+            navigate("/blogs");
+        }catch(e:any){
+            console.error(e);
+            setError(e?.response?.data?.msg || e?.response?.data?.error || 'Error while authenticating');
+        }finally{
+            setSubmitting(false);
         }
-        
     }
     return <div className="h-screen flex justify-center flex-col">
         <div className="flex justify-center">
             <div>
             <div className="px-10">
                 <div className="text-3xl font-extrabold text-left">
-                    Create an account
+                    {type === 'signup' ? 'Create an account' : 'Welcome back'}
                 </div>
 
                 <div className="text-slate-400">
@@ -62,13 +73,14 @@ import { BACKEND_URL } from "../config";
                 }))
             }}/>
             <div className="mt-8 flex justify-center">
-            <button onClick={sendRequest} className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400">
+            <button disabled={submitting} onClick={sendRequest} className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 disabled:opacity-60 disabled:cursor-not-allowed dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400">
                 <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
-                {type =="signup" ? "Sign up" : "Sign in"}
+                {submitting ? (type === 'signup' ? 'Creating...' : 'Signing in...') : (type =="signup" ? "Sign up" : "Sign in")}
                 </span>
                 </button>
 
             </div>
+            {error && <div className="text-red-600 text-sm text-center mt-2">{error}</div>}
 
             </div>
             </div>
@@ -83,9 +95,9 @@ interface LabelledType {
     type?: string;
 }
  function LabeledInput({label,placeholder,onChange,type}: LabelledType) {
-    return <div>
-    <label className="block mb-2 text-sm text-black font-bold pt-4">{label}</label>
-    <input onChange={onChange} type={type || "text"} id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
-     focus:border-blue-500 block w-full p-2.5 " placeholder={placeholder} required />
+     return <div>
+     <label className="block mb-2 text-sm text-black font-bold pt-4">{label}</label>
+     <input onChange={onChange} type={type || "text"} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
+      focus:border-blue-500 block w-full p-2.5 " placeholder={placeholder} required />
 </div>
  }

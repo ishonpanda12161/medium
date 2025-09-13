@@ -12,15 +12,25 @@ export const Publish = () => {
   const handlePublish = async () => {
     if (!title || !description) return alert("Title and content are required!");
     try {
+      const token = localStorage.getItem('token') || '';
+      if(!token){
+        return navigate('/signin');
+      }
       const response = await axios.post(
         `${BACKEND_URL}/api/v1/blog`,
         { title, content: description },
-        { headers: { Authorization: localStorage.getItem("token") } }
+        { headers: { Authorization: token } }
       );
       navigate(`/blog/${response.data.id}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to publish. Try again!");
+      // auth failure
+      // @ts-ignore
+      if(err?.response?.status === 401 || err?.response?.status === 403){
+        navigate('/signin');
+      } else {
+        alert("Failed to publish. Try again!");
+      }
     }
   };
 

@@ -17,18 +17,28 @@ export const useBlogs = () => {
     const [blogs,setBlogs] = useState<Blogs[]>([]);
 
     useEffect(()=>{
-        axios.get(`${BACKEND_URL}/api/v1/blog/bulk`,{
-            headers:{
-                Authorization: localStorage.getItem("token"),
-            }
-        }
-        ).then(
-            response => {
+        const controller = new AbortController();
+        async function run(){
+            try{
+                const token = localStorage.getItem('token') || '';
+                const response = await axios.get(`${BACKEND_URL}/api/v1/blog/bulk`,{
+                    headers:{ Authorization: token },
+                    signal: controller.signal
+                });
                 setBlogs(response.data.blogs);
+            }catch(e:any){
+                if(!axios.isCancel(e)){
+                    if(e?.response?.status === 401 || e?.response?.status===403){
+                        window.location.href = '/signin';
+                    }
+                    console.error('Failed to load blogs', e);
+                }
+            }finally{
                 setLoading(false);
             }
-        )
-
+        }
+        run();
+        return ()=> controller.abort();
     },[]);
 
     return {
@@ -43,18 +53,28 @@ export const useBlog = ({id} : {id:string}) => {
     const [blog,setBlog] = useState<Blogs>();
 
     useEffect(()=>{
-        axios.get(`${BACKEND_URL}/api/v1/blog/${id}`,{
-            headers:{
-                Authorization: localStorage.getItem("token"),
-            }
-        }
-        ).then(
-            response => {
+        const controller = new AbortController();
+        async function run(){
+            try{
+                const token = localStorage.getItem('token') || '';
+                const response = await axios.get(`${BACKEND_URL}/api/v1/blog/${id}`,{
+                    headers:{ Authorization: token },
+                    signal: controller.signal
+                });
                 setBlog(response.data.blog);
+            }catch(e:any){
+                if(!axios.isCancel(e)){
+                    if(e?.response?.status === 401 || e?.response?.status===403){
+                        window.location.href = '/signin';
+                    }
+                    console.error('Failed to load blog', e);
+                }
+            }finally{
                 setLoading(false);
             }
-        )
-
+        }
+        if(id) run();
+        return ()=> controller.abort();
     },[id]);
 
     return {

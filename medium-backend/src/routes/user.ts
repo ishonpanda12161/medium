@@ -36,8 +36,9 @@ userRouter.post('/signup', async (c) => {
         },
       });
   
-      const token = await sign({ id: user.id }, c.env.JWT_SECRET);
-      return c.json({ token : "Bearer "+token });
+  // Return raw JWT (frontend will prepend Bearer when sending requests)
+  const token = await sign({ id: user.id }, c.env.JWT_SECRET);
+  return c.json({ token });
     } catch (e) {
       console.error("Signup error:", e);
       return c.json({ msg: "Error", error: String(e) }, 403);
@@ -59,7 +60,8 @@ userRouter.post('/signup', async (c) => {
         const prisma = new PrismaClient({ datasourceUrl: c.env.DB_URL }).$extends(withAccelerate());
 
   
-      const user = await prisma.user.findUnique({
+      // findFirst to allow composite filtering if password is not part of unique index
+      const user = await prisma.user.findFirst({
         where: { 
           email: body.email,
           password: body.password 
@@ -71,8 +73,8 @@ userRouter.post('/signup', async (c) => {
         return c.json({ error: "Invalid email or password" });
       }
   
-      const token = await sign({ id: user.id }, c.env.JWT_SECRET);
-      return c.json({ msg: "Signed In!", token });
+  const token = await sign({ id: user.id }, c.env.JWT_SECRET);
+  return c.json({ token });
     } catch (e) {
       c.status(500);
       return c.json({ error: "Something went wrong"+e });

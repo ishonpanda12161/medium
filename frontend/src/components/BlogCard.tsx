@@ -40,12 +40,15 @@ export const BlogCard = ({authorName, title, content, publishedDate,id}: BlogCar
   
 
   export function Avatar({ name, size = 48 }: { name: string; size?: number }) {
+    const initial = name?.trim()?.[0]?.toUpperCase() || '?';
     return (
       <div
         style={{ width: size, height: size }}
         className="relative inline-flex items-center justify-center overflow-hidden bg-gray-600 rounded-full dark:bg-gray-600"
+        aria-label={`Avatar for ${name || 'unknown user'}`}
+        title={name || 'Unknown user'}
       >
-        <span className="text-xs font-thin text-gray-300">{name[0]}</span>
+        <span className="text-xs font-thin text-gray-300">{initial}</span>
       </div>
     );
   }

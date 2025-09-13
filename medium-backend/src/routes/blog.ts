@@ -20,24 +20,21 @@ export const blogRouter = new Hono<{
 
 //Middleware 
 blogRouter.use('/*', async (c,next) => {
-    //here , extract the author id , and pass it to the user for referencing 
-    // in the foreign key for posting the posts 
-
-    const token = c.req.header("Authorization") || "";
-
+    // Extract token from Authorization header. Accept both raw token and 'Bearer <token>' formats.
+    const authHeader = c.req.header("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+    if(!token){
+        c.status(401);
+        return c.json({ msg: "Missing authorization token" });
+    }
     try{
         const user = await verify(token,c.env.JWT_SECRET);
-
-    c.set("userId",Number(user.id));
-    await next();
-    }catch(e)
-    {
+        c.set("userId",Number((user as any).id));
+        await next();
+    }catch(e){
         c.status(403);
-        return c.json({
-            msg:"Not Logged in "
-        })
+        return c.json({ msg:"Invalid or expired token" });
     }
-
 });
 
 
